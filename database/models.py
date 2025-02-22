@@ -23,7 +23,7 @@ class Users(Base):
     bus_datetime: Mapped[str] = mapped_column(DateTime, default=lambda: datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
     telegram_id = mapped_column(BigInteger, nullable=True, unique=True)
     username: Mapped[str] = mapped_column(String(length=30), nullable=True)
-    contact: Mapped[str] = mapped_column(String(length=20), nullable=True)
+    pref_language: Mapped[str] = mapped_column(String(length=10), default="RU")
 
 class Responses(Base):
     __tablename__ = "responses"
