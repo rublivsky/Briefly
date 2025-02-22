@@ -4,7 +4,7 @@ import logging
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 
-from app.database.models import async_main
+from database.models import async_main
 # from app.user import router
 
 load_dotenv()
