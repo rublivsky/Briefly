@@ -9,7 +9,7 @@ import datetime
 
 dotenv.load_dotenv()
 
-DATABASE_URL = f"sqlite+aiosqlite:///{os.path.join('db.sqlite3')}"
+DATABASE_URL = f"sqlite+aiosqlite:///{os.path.join(os.path.dirname(__file__), 'db.sqlite3')}"
 # DATABASE_URL = os.getenv("DATABASE_URL", "").replace("postgres://", "postgresql+asyncpg://")
 async_engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = async_sessionmaker(async_engine, class_=AsyncSession)
