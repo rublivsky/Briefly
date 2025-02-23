@@ -30,3 +30,8 @@ async def set_language(session, telegram_id, language):
 async def check_user(session, telegram_id):
     user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
     return user
+
+@connection
+async def check_language(session, telegram_id):
+    user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
+    return user.pref_language

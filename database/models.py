@@ -20,8 +20,8 @@ class Base(AsyncAttrs, DeclarativeBase):
 class Users(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
-    bus_datetime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    telegram_id = mapped_column(BigInteger, nullable=True)
+    bus_datetime: Mapped[DateTime] = mapped_column(DateTime,)
+    telegram_id = mapped_column(BigInteger)
     username: Mapped[str] = mapped_column(String(length=30), nullable=True)
     pref_language: Mapped[str] = mapped_column(String(length=10), default="RU")
 
@@ -31,6 +31,7 @@ class Responses(Base):
     date: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
     time: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
     telegram_id = mapped_column(BigInteger, ForeignKey(Users.telegram_id))
+    uploaded_text: Mapped[str] = mapped_column(String(length=4000))
     response: Mapped[str] = mapped_column(String(length=2000))
     questions: Mapped[str] = mapped_column(String(length=200))
     questions_response: Mapped[str] = mapped_column(String(length=1000))
