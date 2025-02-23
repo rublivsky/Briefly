@@ -9,12 +9,13 @@ def connection(func):
     return wrapper
 
 @connection
-async def set_user(session, telegram_id, username):
+async def set_user(session, telegram_id, username, bus_datetime):
     user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
     if not user:
-        session.add(Users(bus_datetime=datetime.now().strftime('%d.%m.%Y %H:%M:%S'), 
+        session.add(Users(bus_datetime=bus_datetime,
                           telegram_id=telegram_id, 
-                          username=username))
+                          username=username,
+                          pref_language='RU'))
         await session.commit()
         return False
     else:
@@ -29,4 +30,3 @@ async def set_language(session, telegram_id, language):
 async def check_user(session, telegram_id):
     user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
     return user
-

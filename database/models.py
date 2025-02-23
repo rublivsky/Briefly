@@ -20,19 +20,18 @@ class Base(AsyncAttrs, DeclarativeBase):
 class Users(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
-    bus_datetime: Mapped[str] = mapped_column(DateTime, default=lambda: datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S'))
-    telegram_id = mapped_column(BigInteger, nullable=True, unique=True)
+    bus_datetime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    telegram_id = mapped_column(BigInteger, nullable=True)
     username: Mapped[str] = mapped_column(String(length=30), nullable=True)
     pref_language: Mapped[str] = mapped_column(String(length=10), default="RU")
 
 class Responses(Base):
     __tablename__ = "responses"
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[str] = mapped_column(DateTime, default=lambda: datetime.datetime.now().strftime('%d.%m.%Y'))
-    time: Mapped[str] = mapped_column(DateTime, default=lambda: datetime.datetime.now().strftime('%H:%M:%S'))
+    date: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
+    time: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
     telegram_id = mapped_column(BigInteger, ForeignKey(Users.telegram_id))
     response: Mapped[str] = mapped_column(String(length=2000))
-    date: Mapped[str] = mapped_column(DateTime)
     questions: Mapped[str] = mapped_column(String(length=200))
     questions_response: Mapped[str] = mapped_column(String(length=1000))
 
