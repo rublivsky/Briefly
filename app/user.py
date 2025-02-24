@@ -67,14 +67,13 @@ async def handle_voice_message(message: Message ,state: FSMContext):
     await message.answer(f"Вот что я понял из твоего голосового:\n\n{transcript}", reply_markup=geneterate_summary)
     
     os.remove(local_file)
-    # await state.update_data(telegram_id=telegram_id)
-    # await state.set_state(user.get_summary)
+    await state.set_state(user.get_summary)
 
 
-# await state.clear()
-@router.message(F.text=="Сгенерировать сводку")
+# await state.clear() 
+@router.message(F.text == "Сгенерировать сводку", user.get_summary)
 async def summary(message: Message, state: FSMContext):
-    await message.answer("Генерирую сводку, подожди немного...")
+    await message.answer("Генерирую сводку, подождите немного...")
     summary_text = await summarize_text(user_data[message.from_user.id]["uploaded_text"])
     user_data[message.from_user.id]["response"] = summary_text
     await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard)

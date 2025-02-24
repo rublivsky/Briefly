@@ -8,20 +8,20 @@ language_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
-geneterate_summary = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            {"text": "Сгенерировать сводку", "callback_data": "generate_summary"}
-        ]
-    ]
+geneterate_summary = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='Сгенерировать сводку')]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
 )
 
-questions_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            {"text": "Задать вопрос?", "callback_data": "question"}
-        ]
-    ]
+questions_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='Задать вопрос')]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
 )
 
 main_menu_keyboard = ReplyKeyboardMarkup(
