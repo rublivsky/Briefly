@@ -22,11 +22,13 @@ async def set_user(session, telegram_id, username, bus_datetime):
         return user
     
 @connection
-async def set_uploaded_text(session, bus_datetime, telegram_id, uploaded_text, response):
+async def set_uploaded_text(session, bus_datetime, telegram_id, uploaded_text, response, question, question_response):
     session.add(Responses(bus_datetime=bus_datetime,
                           telegram_id=telegram_id,
                           uploaded_text=uploaded_text,
-                          response=response))
+                          response=response,
+                          question=question,
+                          question_response=question_response))
     await session.commit()
 
 @connection

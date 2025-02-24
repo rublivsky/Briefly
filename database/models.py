@@ -32,8 +32,8 @@ class Responses(Base):
     telegram_id = mapped_column(BigInteger, ForeignKey(Users.telegram_id))
     uploaded_text: Mapped[str] = mapped_column(String(length=4000))
     response: Mapped[str] = mapped_column(String(length=2000))
-    questions: Mapped[str] = mapped_column(String(length=200), nullable=True)
-    questions_response: Mapped[str] = mapped_column(String(length=1000), nullable=True)
+    question: Mapped[str] = mapped_column(String(length=200), nullable=True)
+    question_response: Mapped[str] = mapped_column(String(length=1000), nullable=True)
 
 async def async_main():
     async with async_engine.begin() as conn:

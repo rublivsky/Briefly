@@ -37,12 +37,12 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(user.choose_lang)
 async def choose_lang(message: Message, state: FSMContext):
-    if message.text == "EN" or message.text == "RU" or message.text == "UA":
+    if message.text == "EN" or message.text == "RU":
         await set_language(message.from_user.id, message.text.strip())
         await state.clear()
         await message.answer(f"Теперь я буду делать сводку на этом языке: {message.text.strip()}")
     else:
-        await message.answer("Выбери язык: EN / RU / UA", reply_markup=language_keyboard)
+        await message.answer("Выбери язык: EN / RU", reply_markup=language_keyboard)
     
     await message.answer("Можешь отправить мне аудио файл / голосовое сообщение / ссылку на ютуб и я сгенерирую сводку по нему.")
     
@@ -81,15 +81,8 @@ async def handle_voice_message(message: Message ,state: FSMContext):
 async def summary(message: Message, state: FSMContext):
     await message.answer("Генерирую сводку, подождите немного...")
     summary_text = await ask_openai(user_data[message.from_user.id]["uploaded_text"], SUMAMARY_PROMPT)
-    
     user_data[message.from_user.id]["response"] = summary_text
     await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard)
-    await set_uploaded_text(time_now(), 
-                            message.from_user.id, 
-                            user_data[message.from_user.id]["uploaded_text"], 
-                            user_data[message.from_user.id]["response"])
-    
-    # del user_data[message.from_user.id]
     await state.clear()
     
 
@@ -105,9 +98,18 @@ async def get_question(message: Message, state: FSMContext):
     
     full_context = (f"{QUESTION_FROM_CONTEXT}\n {user_data[message.from_user.id]["question"]}Исходя из текста:\n{user_data[message.from_user.id]['uploaded_text']}")
     await message.answer("Подождите немного, ищу ответ на ваш вопрос...")
-    answer = await ask_openai(user_data[message.from_user.id]["question"], full_context)
-    user_data[message.from_user.id]["questions_response"] = answer
-    await message.answer(f"Ответ на ваш вопрос:\n{answer}")
+    question_response = await ask_openai(user_data[message.from_user.id]["question"], full_context)
+    user_data[message.from_user.id]["question_response"] = question_response
+    await message.answer(f"Ответ на ваш вопрос:\n{question_response}")
     await state.clear()
     
+    await set_uploaded_text(time_now(), 
+                            message.from_user.id, 
+                            user_data[message.from_user.id]["uploaded_text"], 
+                            user_data[message.from_user.id]["response"],
+                            user_data[message.from_user.id]["question"],
+                            user_data[message.from_user.id]["question_response"]
+                            )
+    
+    # del user_data[message.from_user.id]
     

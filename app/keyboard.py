@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 language_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text='RU'), KeyboardButton(text='EN'), KeyboardButton(text='UA')]
+        [KeyboardButton(text='RU'), KeyboardButton(text='EN')]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
