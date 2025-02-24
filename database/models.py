@@ -28,8 +28,7 @@ class Users(Base):
 class Responses(Base):
     __tablename__ = "responses"
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
-    time: Mapped[str] = mapped_column(DateTime, default=datetime.datetime.now)
+    bus_datetime: Mapped[DateTime] = mapped_column(DateTime,)
     telegram_id = mapped_column(BigInteger, ForeignKey(Users.telegram_id))
     uploaded_text: Mapped[str] = mapped_column(String(length=4000))
     response: Mapped[str] = mapped_column(String(length=2000))

@@ -8,6 +8,14 @@ language_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
+geneterate_summary = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            {"text": "Сгенерировать сводку", "callback_data": "generate_summary"}
+        ]
+    ]
+)
+
 questions_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [

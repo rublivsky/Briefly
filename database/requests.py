@@ -22,6 +22,13 @@ async def set_user(session, telegram_id, username, bus_datetime):
         return user
     
 @connection
+async def set_uploaded_text(session, bus_datetime, telegram_id, uploaded_text):
+    session.add(Responses(bus_datetime=bus_datetime,
+                          telegram_id=telegram_id,
+                          uploaded_text=uploaded_text))
+    await session.commit()
+
+@connection
 async def set_language(session, telegram_id, language):
     await session.execute(update(Users).where(Users.telegram_id == telegram_id).values(pref_language=language))
     await session.commit()

@@ -6,11 +6,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from database.requests import set_user, set_language, check_user, check_language
-from app.keyboard import language_keyboard, questions_keyboard, main_menu_keyboard
-from app.logic import time_now, transcribe_audio
-# from main import bot
+from app.keyboard import language_keyboard, questions_keyboard, main_menu_keyboard, geneterate_summary
+from app.logic import time_now, transcribe_audio, summarize_text
 
 router = Router()
+
+user_data = {}
 
 class user(StatesGroup):
     choose_lang = State()
@@ -46,21 +47,36 @@ async def main_menu(message: Message, state: FSMContext):
     
 
 @router.message(F.voice)
-async def handle_voice_message(message: Message):
-    # from main import bot
+async def handle_voice_message(message: Message ,state: FSMContext):
+    telegram_id = message.from_user.id
+    if telegram_id not in user_data:
+        user_data[telegram_id] = {}
+        
     bot = message.bot
     """Обрабатывает голосовое сообщение, скачивает и делает транскрипцию"""
     voice = message.voice
     file_info = await bot.get_file(voice.file_id)
     file_path = file_info.file_path
     local_file = f"downloads/{voice.file_id}.ogg"
-    # Создаём папку, если её нет
     os.makedirs("downloads", exist_ok=True)
-    # Скачиваем файл
+    
     await bot.download_file(file_path, local_file)
-    # Делаем транскрипцию
     transcript = await transcribe_audio(local_file, await check_language(message.from_user.id))
-    # Отправляем текст пользователю
-    await message.answer(f"Вот что я понял из твоего голосового:\n\n{transcript}")
-    # Удаляем файл после обработки
+    user_data[telegram_id]["uploaded_text"] = transcript
+    
+    await message.answer(f"Вот что я понял из твоего голосового:\n\n{transcript}", reply_markup=geneterate_summary)
+    
     os.remove(local_file)
+    # await state.update_data(telegram_id=telegram_id)
+    # await state.set_state(user.get_summary)
+
+
+# await state.clear()
+@router.message(F.text=="Сгенерировать сводку")
+async def summary(message: Message, state: FSMContext):
+    await message.answer("Генерирую сводку, подожди немного...")
+    summary_text = await summarize_text(user_data[message.from_user.id]["uploaded_text"])
+    await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard)
+
+
+    await state.clear()
