@@ -37,3 +37,5 @@ async def summarize_text(text: str):
         return summary
     except Exception as e:
         return f"Ошибка при обработке запроса: {e}"
+
+

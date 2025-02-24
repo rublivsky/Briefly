@@ -22,10 +22,11 @@ async def set_user(session, telegram_id, username, bus_datetime):
         return user
     
 @connection
-async def set_uploaded_text(session, bus_datetime, telegram_id, uploaded_text):
+async def set_uploaded_text(session, bus_datetime, telegram_id, uploaded_text, response):
     session.add(Responses(bus_datetime=bus_datetime,
                           telegram_id=telegram_id,
-                          uploaded_text=uploaded_text))
+                          uploaded_text=uploaded_text,
+                          response=response))
     await session.commit()
 
 @connection
@@ -42,3 +43,10 @@ async def check_user(session, telegram_id):
 async def check_language(session, telegram_id):
     user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
     return user.pref_language
+
+# @connection
+# async def save_response_to_db(session, user_id: int, response: str):
+#     async with SessionLocal() as session:
+#         new_entry = UserResponse(user_id=user_id, response=response)
+#         session.add(new_entry)
+#         await session.commit()

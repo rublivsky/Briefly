@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from database.requests import set_user, set_language, check_user, check_language
+from database.requests import set_user, set_language, check_user, check_language, set_uploaded_text
 from app.keyboard import language_keyboard, questions_keyboard, main_menu_keyboard, geneterate_summary
 from app.logic import time_now, transcribe_audio, summarize_text
 
@@ -76,7 +76,10 @@ async def handle_voice_message(message: Message ,state: FSMContext):
 async def summary(message: Message, state: FSMContext):
     await message.answer("Генерирую сводку, подожди немного...")
     summary_text = await summarize_text(user_data[message.from_user.id]["uploaded_text"])
+    user_data[message.from_user.id]["response"] = summary_text
     await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard)
 
+    await set_uploaded_text(time_now(), message.from_user.id, user_data[message.from_user.id]["uploaded_text"], user_data[message.from_user.id]["response"])
 
+    del user_data[message.from_user.id]
     await state.clear()
