@@ -7,17 +7,22 @@ from aiogram.fsm.state import StatesGroup, State
 
 from database.requests import set_user, set_language, check_user, check_language, set_uploaded_text
 from app.keyboard import language_keyboard, questions_keyboard, main_menu_keyboard, geneterate_summary
-from app.logic import time_now, transcribe_audio, summarize_text
+from app.logic import time_now, transcribe_audio, ask_openai
 
 router = Router()
 
 user_data = {}
 
+SUMAMARY_PROMPT = "Ты — помощник, который кратко резюмирует текст."
+QUESTION_FROM_CONTEXT = "Исходя из текста дай ответ на вопрос"
+
 class user(StatesGroup):
     choose_lang = State()
     main_menu = State()
     get_summary = State()
+    ask_question = State()
     get_history = State()
+
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
@@ -29,6 +34,7 @@ async def cmd_start(message: Message, state: FSMContext):
                              reply_markup=language_keyboard)
         await state.set_state(user.choose_lang)
         
+
 @router.message(user.choose_lang)
 async def choose_lang(message: Message, state: FSMContext):
     if message.text == "EN" or message.text == "RU" or message.text == "UA":
@@ -74,11 +80,34 @@ async def handle_voice_message(message: Message ,state: FSMContext):
 @router.message(F.text == "Сгенерировать сводку", user.get_summary)
 async def summary(message: Message, state: FSMContext):
     await message.answer("Генерирую сводку, подождите немного...")
-    summary_text = await summarize_text(user_data[message.from_user.id]["uploaded_text"])
+    summary_text = await ask_openai(user_data[message.from_user.id]["uploaded_text"], SUMAMARY_PROMPT)
+    
     user_data[message.from_user.id]["response"] = summary_text
     await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard)
-
-    await set_uploaded_text(time_now(), message.from_user.id, user_data[message.from_user.id]["uploaded_text"], user_data[message.from_user.id]["response"])
-
-    del user_data[message.from_user.id]
+    await set_uploaded_text(time_now(), 
+                            message.from_user.id, 
+                            user_data[message.from_user.id]["uploaded_text"], 
+                            user_data[message.from_user.id]["response"])
+    
+    # del user_data[message.from_user.id]
     await state.clear()
+    
+
+@router.message(F.text == "Задать вопрос")
+async def ask_question(message: Message, state: FSMContext):
+    await message.answer("Задайте вопрос:")
+    await state.set_state(user.ask_question)
+    
+
+@router.message(user.ask_question)
+async def get_question(message: Message, state: FSMContext):
+    user_data[message.from_user.id]["question"] = message.text
+    
+    full_context = (f"{QUESTION_FROM_CONTEXT}\n {user_data[message.from_user.id]["question"]}Исходя из текста:\n{user_data[message.from_user.id]['uploaded_text']}")
+    await message.answer("Подождите немного, ищу ответ на ваш вопрос...")
+    answer = await ask_openai(user_data[message.from_user.id]["question"], full_context)
+    user_data[message.from_user.id]["questions_response"] = answer
+    await message.answer(f"Ответ на ваш вопрос:\n{answer}")
+    await state.clear()
+    
+    

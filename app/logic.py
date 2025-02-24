@@ -23,12 +23,12 @@ async def transcribe_audio(file_path: str, pref_language: str) -> str:
             )
     return response.text
 
-async def summarize_text(text: str):
+async def ask_openai(text: str, prompt: str):
     try:
         response = await openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Ты — помощник, который кратко резюмирует текст."},
+                {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
             ]
         )
