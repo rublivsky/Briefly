@@ -9,7 +9,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 from database.requests import set_user, set_language, check_user, check_language, set_uploaded_text, set_questions, set_questions_response, get_text
 from app.keyboard import questions_keyboard, main_menu_keyboard, language_kb
-from app.logic import time_now, transcribe_audio, AskingOpenAI
+from app.logic import time_now, transcribe_audio, AskingOpenAI, get_youtube_subtitles_or_transcribe
 
 router = Router()
 
@@ -82,25 +82,73 @@ async def handle_voice_message(message: Message):
 
 @router.message(F.text.regexp(YOUTUBE_REGEX))
 async def handle_youtube_link(message: Message):
-    await message.answer("Генерирую сводку...")
-    
+    telegram_id = message.from_user.id
+    if telegram_id not in user_data:
+        user_data[telegram_id] = {}
+
+    youtube_url = message.text
+    await message.answer("Генерирую сводку, подождите немного...")
+
+    try:
+        transcript = await get_youtube_subtitles_or_transcribe(youtube_url, await check_language(message.from_user.id))
+        user_data[telegram_id]["uploaded_text"] = transcript
+
+        await message.answer(f"Вот что я понял из твоего видео:\n\n{transcript}")
+
+        summary_text = await AskingOpenAI(user_data[telegram_id]["uploaded_text"], PROMPT_SUMM)
+        user_data[telegram_id]["response"] = summary_text
+
+        await set_uploaded_text(time_now(), message.from_user.id, user_data[telegram_id]["uploaded_text"], user_data[telegram_id]["response"])
+        del user_data[telegram_id]
+
+        await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard())
+    except Exception as e:
+        await message.answer(f"Произошла ошибка при обработке видео: {str(e)}")
 
 @router.message(F.document | F.audio)
 async def check_audio_file(message: Message):
+    telegram_id = message.from_user.id
+    if telegram_id not in user_data:
+        user_data[telegram_id] = {}
+
+    bot = message.bot
+
     if message.document:
         file_name = message.document.file_name
         file_ext = file_name[file_name.rfind(".") :].lower()
         mime_type = message.document.mime_type
+        file_id = message.document.file_id
     elif message.audio:
-        file_ext = message.audio.file_name[message.audio.file_name.rfind(".") :].lower()
+        file_name = message.audio.file_name
+        file_ext = file_name[file_name.rfind(".") :].lower()
         mime_type = message.audio.mime_type
+        file_id = message.audio.file_id
     else:
         return  # Если это не документ и не аудио, просто выходим
 
     # Проверяем расширение и MIME-тип
     if file_ext in ALLOWED_EXTENSIONS and mime_type in ALLOWED_MIME_TYPES:
-        # await message.answer("✅ Файл подходит для обработки в Whisper!")
-        pass
+        file_info = await bot.get_file(file_id)
+        file_path = file_info.file_path
+        local_file = f"downloads/{file_id}{file_ext}"
+        os.makedirs("downloads", exist_ok=True)
+        
+        await bot.download_file(file_path, local_file)
+        transcript = await transcribe_audio(local_file, await check_language(message.from_user.id))
+        user_data[telegram_id]["uploaded_text"] = transcript
+        
+        await message.answer(f"Вот что я понял из твоего файла:\n\n{transcript}")
+        
+        os.remove(local_file)
+
+        await message.answer("Генерирую сводку, подождите немного...")
+        summary_text = await AskingOpenAI(user_data[message.from_user.id]["uploaded_text"], PROMPT_SUMM)
+        user_data[message.from_user.id]["response"] = summary_text
+
+        await set_uploaded_text(time_now(), message.from_user.id, user_data[message.from_user.id]["uploaded_text"], user_data[message.from_user.id]["response"])
+        del user_data[message.from_user.id]
+
+        await message.answer(f"Сводка готова:\n{summary_text}", reply_markup=questions_keyboard())
     else:
         await message.answer('❌ Неподдерживаемый формат файла.\nДля транскрипции отправьте:\n".mp3", ".wav", ".flac", ".m4a", ".ogg", ".webm", ".mp4"')
         

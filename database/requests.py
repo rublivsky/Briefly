@@ -45,13 +45,17 @@ async def check_language(session, telegram_id):
 
 @connection
 async def set_questions(session, telegram_id, question):
-    await session.execute(update(Responses).where(Responses.telegram_id == telegram_id).values(questions=question))
-    await session.commit()
+    response = await session.scalar(select(Responses).where(Responses.telegram_id == telegram_id).order_by(Responses.bus_datetime.desc()))
+    if response:
+        await session.execute(update(Responses).where(Responses.id == response.id).values(questions=question))
+        await session.commit()
 
 @connection
 async def set_questions_response(session, telegram_id, questions_response):
-    await session.execute(update(Responses).where(Responses.telegram_id == telegram_id).values(questions_response=questions_response))
-    await session.commit()
+    response = await session.scalar(select(Responses).where(Responses.telegram_id == telegram_id).order_by(Responses.bus_datetime.desc()))
+    if response:
+        await session.execute(update(Responses).where(Responses.id == response.id).values(questions_response=questions_response))
+        await session.commit()
 
 @connection
 async def get_text(session, telegram_id):
