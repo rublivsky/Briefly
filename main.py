@@ -3,6 +3,7 @@ import asyncio
 import logging
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
 
 from database.models import async_main
 from app.user import router

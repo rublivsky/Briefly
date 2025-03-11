@@ -1,6 +1,5 @@
 from sqlalchemy import select, update, insert, text
 from database.models import async_session, Users, Responses
-from datetime import datetime
 
 def connection(func):
     async def wrapper(*args, **kwargs):
@@ -44,9 +43,17 @@ async def check_language(session, telegram_id):
     user = await session.scalar(select(Users).where(Users.telegram_id == telegram_id))
     return user.pref_language
 
-# @connection
-# async def save_response_to_db(session, user_id: int, response: str):
-#     async with SessionLocal() as session:
-#         new_entry = UserResponse(user_id=user_id, response=response)
-#         session.add(new_entry)
-#         await session.commit()
+@connection
+async def set_questions(session, telegram_id, question):
+    await session.execute(update(Responses).where(Responses.telegram_id == telegram_id).values(questions=question))
+    await session.commit()
+
+@connection
+async def set_questions_response(session, telegram_id, questions_response):
+    await session.execute(update(Responses).where(Responses.telegram_id == telegram_id).values(questions_response=questions_response))
+    await session.commit()
+
+@connection
+async def get_text(session, telegram_id):
+    response = await session.scalar(select(Responses).where(Responses.telegram_id == telegram_id))
+    return response.uploaded_text

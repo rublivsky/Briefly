@@ -6,11 +6,10 @@ from datetime import datetime
 from openai import AsyncOpenAI
 
 load_dotenv()
-
 openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def time_now():
-    tz = pytz.timezone('Europe/Kiev')  # Заменить на свой нужный часовой пояс
+    tz = pytz.timezone('Europe/Kiev')
     return datetime.now(tz)
 
 async def transcribe_audio(file_path: str, pref_language: str) -> str:
@@ -23,12 +22,12 @@ async def transcribe_audio(file_path: str, pref_language: str) -> str:
             )
     return response.text
 
-async def summarize_text(text: str):
+async def AskingOpenAI(text: str, prompt: str):
     try:
         response = await openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Ты — помощник, который кратко резюмирует текст."},
+                {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
             ]
         )
