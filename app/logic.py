@@ -4,7 +4,7 @@ import aiohttp
 from dotenv import load_dotenv
 from datetime import datetime
 from openai import AsyncOpenAI
-import youtube_dl
+import yt_dlp as youtube_dl
 
 load_dotenv()
 openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -44,7 +44,8 @@ async def get_youtube_subtitles_or_transcribe(url: str, pref_language: str) -> s
         'writesubtitles': True,
         'subtitleslangs': [pref_language],
         'skip_download': True,
-        'quiet': True
+        'quiet': True,
+        'verbose': True
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -62,8 +63,12 @@ async def get_youtube_subtitles_or_transcribe(url: str, pref_language: str) -> s
                     subtitle_text = await response.text()
             return subtitle_text
         else:
-            audio_url = info_dict['url']
-            audio_file_path = '/tmp/temp_audio_file'
+            file_name = f"{info_dict['id']}.mp3"
+            audio_file_path = f'/tmp/{file_name}'
+            
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(audio_file_path), exist_ok=True)
+            
             ydl_opts['outtmpl'] = audio_file_path
             ydl_opts['format'] = 'bestaudio/best'
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
